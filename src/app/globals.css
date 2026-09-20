@@ -1,0 +1,287 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* The locked palette, also exposed as custom properties so non-Tailwind
+       surfaces (SVG, print styles) read from one source. */
+    --bone: #e8e6e0;
+    --paper: #ffffff;
+    --ink: #0a0a0a;
+    --muted: #5c5c56;
+    --strike: #1925aa;
+    --deep: #0d1355;
+    /* Inter is the loaded webfont; DM Sans is the twin, never mixed on one
+       surface. PP Neue Montreal leads the display stack for anyone holding a
+       licence and falls back to Inter for everyone else. */
+    --font-display: "PP Neue Montreal", "Inter", system-ui, sans-serif;
+    --font-sans: "Inter", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+    --hairline: 1px;
+    --hairline-active: 2px;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    /* Bone is the stage. Never pure white at the root. */
+    @apply bg-bone text-ink font-sans text-body antialiased;
+  }
+
+  /* Focus is the one state that never reuses the hairline shift — it has to
+     stay visible over every other state. */
+  :focus-visible {
+    outline: var(--hairline-active) solid var(--strike);
+    outline-offset: 2px;
+  }
+
+  /* Inside the full-bleed Indigo Strike band the Strike focus ring would be
+     invisible against its own colour. Bone is the only legible ring there. */
+  .on-strike :focus-visible {
+    outline-color: var(--bone);
+  }
+
+  ::selection {
+    background-color: var(--strike);
+    color: var(--bone);
+  }
+
+  ::placeholder {
+    color: var(--muted);
+    opacity: 1;
+  }
+}
+
+@layer components {
+  /* Section eyebrow: "01 PALETTE". Caps come from CSS, never retyped copy. */
+  .eyebrow {
+    @apply font-mono text-mono-label uppercase text-muted;
+  }
+}
+
+@layer utilities {
+  .stage {
+    @apply mx-auto w-full max-w-stage px-s-4 sm:px-s-5 md:px-s-6 lg:px-s-7 xl:px-s-8;
+  }
+}
+
+/* Reduced motion freezes every transition at its final state. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Preloader — the opening seal.
+
+   Written as plain CSS, not utilities, for one reason: it has to animate on
+   the first paint of the server HTML, before any JavaScript has run. The
+   React component in `Preloader.tsx` only handles the exit.
+
+   `html[data-preloaded]` is set by an inline script in `layout.tsx` when this
+   session has already seen the panel, or when the visitor asked for reduced
+   motion. The panel is then never painted at all.
+--------------------------------------------------------------------------- */
+
+html[data-preloaded="1"] .preloader {
+  display: none;
+}
+
+html.is-loading,
+html.is-loading body {
+  overflow: hidden;
+}
+
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  background-color: var(--bone);
+  transform: translateY(0);
+  transition: transform 700ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* The exit: the whole panel wipes up off the sheet. */
+.preloader--leave {
+  transform: translateY(-101%);
+  pointer-events: none;
+}
+
+.preloader__stack {
+  display: grid;
+  justify-items: center;
+  gap: 24px;
+  transition: opacity 260ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.preloader--leave .preloader__stack {
+  opacity: 0;
+}
+
+/* --- The seal ------------------------------------------------------------ */
+
+.preloader__seal {
+  position: relative;
+  display: grid;
+  place-content: center;
+  width: 104px;
+  height: 104px;
+  color: var(--deep);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+/* Four edges, each drawing from the corner the previous one finished at. */
+.preloader__edge {
+  position: absolute;
+  background-color: var(--deep);
+  transform: scale(0);
+  animation: preloader-edge 260ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+.preloader__edge--t {
+  inset: 0 0 auto 0;
+  height: 1px;
+  transform-origin: left center;
+  animation-name: preloader-edge-x;
+  animation-delay: 0ms;
+}
+
+.preloader__edge--r {
+  inset: 0 0 0 auto;
+  width: 1px;
+  transform-origin: center top;
+  animation-name: preloader-edge-y;
+  animation-delay: 90ms;
+}
+
+.preloader__edge--b {
+  inset: auto 0 0 0;
+  height: 1px;
+  transform-origin: right center;
+  animation-name: preloader-edge-x;
+  animation-delay: 180ms;
+}
+
+.preloader__edge--l {
+  inset: 0 auto 0 0;
+  width: 1px;
+  transform-origin: center bottom;
+  animation-name: preloader-edge-y;
+  animation-delay: 270ms;
+}
+
+@keyframes preloader-edge-x {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes preloader-edge-y {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+/* The three mono rows, rising in order. */
+.preloader__row {
+  display: block;
+  opacity: 0;
+  transform: translateY(6px);
+  animation: preloader-row 320ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+.preloader__row--1 { animation-delay: 300ms; }
+.preloader__row--2 { animation-delay: 370ms; }
+.preloader__row--3 { animation-delay: 440ms; }
+
+@keyframes preloader-row {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* The multiply mark lands last, and turns as it does. */
+.preloader__mark {
+  display: inline-block;
+  color: var(--strike);
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.6);
+  animation: preloader-mark 340ms cubic-bezier(0.22, 0.61, 0.36, 1) 520ms forwards;
+}
+
+@keyframes preloader-mark {
+  to {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+/* --- Wordmark and meter --------------------------------------------------- */
+
+.preloader__word {
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.65625rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  animation: preloader-word 360ms cubic-bezier(0.22, 0.61, 0.36, 1) 560ms forwards;
+}
+
+@keyframes preloader-word {
+  from {
+    opacity: 0;
+    letter-spacing: 0.02em;
+  }
+  to {
+    opacity: 1;
+    letter-spacing: 0.38em;
+  }
+}
+
+/* Indeterminate on purpose: the panel does not know real progress, so it does
+   not pretend to. One hairline crossing a hairline track. */
+.preloader__meter {
+  position: relative;
+  width: 104px;
+  height: 1px;
+  overflow: hidden;
+  background-color: rgb(92 92 86 / 0.3);
+  opacity: 0;
+  animation: preloader-row 320ms cubic-bezier(0.22, 0.61, 0.36, 1) 620ms forwards;
+}
+
+.preloader__meter-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  background-color: var(--strike);
+  animation: preloader-meter 1200ms cubic-bezier(0.22, 0.61, 0.36, 1) 620ms infinite;
+}
+
+@keyframes preloader-meter {
+  from { transform: translateX(-110%); }
+  to { transform: translateX(360%); }
+}

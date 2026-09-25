@@ -27,7 +27,7 @@ export function CopyButton({ text }: { text: string }) {
       type="button"
       onClick={copy}
       aria-live="polite"
-      className="ml-2 cursor-pointer border border-hair bg-transparent px-2.5 py-[5px] text-[13px] font-medium text-fg hover:border-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-strike"
+      className="ml-3 inline-flex h-7 cursor-pointer items-center rounded-[4px] bg-ink/[.06] px-2.5 font-mono text-[10.5px] font-medium tracking-[.1em] text-ink uppercase transition-colors duration-300 hover:bg-ink/[.11] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-strike"
     >
       {label}
     </button>

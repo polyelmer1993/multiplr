@@ -1,55 +1,76 @@
-import { Button } from "@/components/ui/Button";
+"use client";
+
+import { motion, useMotionValue, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
+import { useSite } from "@/components/SiteProvider";
 import { Container } from "@/components/ui/Container";
-import { Perch } from "@/components/ui/Perch";
-import { FadeIn, Reveal, RevealLine } from "@/components/ui/Reveal";
+import { RiseText } from "@/components/ui/RiseText";
+import { SealLetters } from "@/components/ui/SealCubeFaces";
+import { TypingText } from "@/components/ui/TypingText";
+import { PITCHES } from "@/lib/content";
 
-/** 64 bars of a gently rippling "signal". Heights are fixed so server and client agree. */
-const BARS = Array.from({ length: 64 }, (_, i) => ({
-  lo: (0.22 + 0.62 * Math.abs(Math.sin(i * 0.37) * Math.cos(i * 0.113))).toFixed(2),
-  delay: `${(-(i * 0.085)).toFixed(3)}s`,
-  color: ["bg-deep", "bg-strike", "bg-[#bdbab1]"][i % 3],
-}));
-
+/**
+ * The opening scene. The seal cube sits large on the right (it's drawn by
+ * <SealCube>, which reads this section's [data-seal-anchor] box) while the
+ * pitch types itself out. The hero pins as the next sheet slides up over it,
+ * and the cube shrinks down into the companion that follows you.
+ */
 export function Hero() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { reduced } = useSite();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  const none = useMotionValue(0);
+  const p = reduced ? none : scrollYProgress;
+  const contentScale = useTransform(p, [0, 1], [1, 0.9]);
+  const contentY = useTransform(p, [0, 1], [0, -60]);
+  const contentOpacity = useTransform(p, [0, 0.8], [1, 0.25]);
+  const hintOpacity = useTransform(p, [0, 0.03], [1, 0]);
+
   return (
-    <section id="home" aria-labelledby="hero-title" className="relative flex min-h-svh items-center pt-[120px] pb-[90px]">
-      <Container>
-        <Reveal>
-          <Perch className="top-0 right-[22px] ml:top-2 ml:right-14" />
-          <div
-            aria-hidden="true"
-            className="mb-[clamp(32px,5vh,52px)] flex h-[76px] max-w-[calc(100%-64px)] items-end gap-[5px] md:max-w-[430px]"
-          >
-            {BARS.map((b, i) => (
-              <i
-                key={i}
-                className={`h-full max-w-[5px] min-w-[2px] flex-1 origin-bottom animate-ripple motion-reduce:scale-y-(--lo) motion-reduce:animate-none ${b.color}`}
-                style={{ "--lo": b.lo, animationDelay: b.delay } as React.CSSProperties}
+    <div ref={ref} data-seal-track className="relative h-[200svh]">
+      <section id="home" aria-labelledby="hero-title" className="dot-grid grain sticky top-0 flex h-svh flex-col overflow-hidden bg-bone">
+        <motion.div
+          className="relative flex flex-1 flex-col justify-center pt-20 pb-10 md:pt-24"
+          style={{ scale: contentScale, y: contentY, opacity: contentOpacity }}
+        >
+          <Container className="grid items-center gap-y-12 md:grid-cols-12 md:gap-x-10">
+            {/* Where the big cube sits. <SealCube> sizes and places itself on this box. */}
+            <div
+              data-seal-anchor
+              aria-hidden="true"
+              className="relative aspect-square w-[min(44vw,24svh)] md:order-2 md:col-span-4 md:w-[min(34svh,100%,300px)] md:justify-self-end"
+            >
+              {reduced && (
+                <div className="bigseal absolute inset-0 border-[3px] p-[8%]">
+                  <SealLetters />
+                </div>
+              )}
+              <motion.p
+                style={{ opacity: hintOpacity }}
+                className="absolute -top-8 left-0 font-mono text-[10.5px] font-medium tracking-[.2em] whitespace-nowrap text-ink/55 uppercase md:left-1/2 md:-translate-x-1/2"
+              >
+                Drag it, tap it, then scroll
+              </motion.p>
+            </div>
+
+            <div className="md:order-1 md:col-span-8">
+              <RiseText
+                as="h1"
+                id="hero-title"
+                onMount
+                delay={0.3}
+                lines={["I help business owners"]}
+                className="text-[clamp(2.4rem,5.2vw,5.6rem)] leading-[1] font-light tracking-[-.045em] text-deep"
               />
-            ))}
-          </div>
-
-          <h1
-            id="hero-title"
-            className="text-[clamp(2.2rem,5.6vw,6.2rem)] leading-[1.02] font-medium tracking-[-.05em] text-hd"
-          >
-            <RevealLine index={0}>Improving the systems</RevealLine>
-            <RevealLine index={1}>your business runs on,</RevealLine>
-            <RevealLine index={2} className="whitespace-nowrap">one piece at a time.</RevealLine>
-          </h1>
-
-          <FadeIn delay={0.35}>
-            <p className="mt-[clamp(24px,3.5vw,40px)] text-[clamp(1.08rem,1.45vw,1.35rem)] leading-[1.45] text-fg-soft">
-              Practical AI, websites that turn visitors into enquiries, and workflows that give your team time back.
-            </p>
-          </FadeIn>
-
-          <FadeIn delay={0.5} className="mt-[clamp(28px,4vw,40px)] flex flex-wrap gap-3">
-            <Button href="#talk" arrow>Let&apos;s talk</Button>
-            <Button href="#ways" variant="ghost">What I do</Button>
-          </FadeIn>
-        </Reveal>
-      </Container>
-    </section>
+              <TypingText
+                lines={PITCHES}
+                startDelay={1300}
+                className="mt-[.08em] min-h-[3em] text-[clamp(2.4rem,5.2vw,5.6rem)] leading-[1] font-light tracking-[-.045em] text-strike md:min-h-[2em]"
+              />
+            </div>
+          </Container>
+        </motion.div>
+      </section>
+    </div>
   );
 }

@@ -1,101 +1,65 @@
-"use client";
-
-import { motion, useSpring, type Variants } from "framer-motion";
 import Link from "next/link";
-import type { ComponentProps, PointerEvent } from "react";
-import { useSite } from "@/components/SiteProvider";
-import { EASE } from "@/lib/motion";
+import type { ComponentProps } from "react";
 import { ArrowIcon } from "./ArrowIcon";
 
-type ButtonProps = Omit<ComponentProps<"a">, "ref" | "onAnimationStart" | "onDrag" | "onDragStart" | "onDragEnd"> & {
+type ButtonProps = Omit<ComponentProps<"a">, "ref"> & {
   href: string;
-  variant?: "primary" | "ghost";
+  variant?: "primary" | "quiet" | "light" | "outline";
   size?: "md" | "sm";
   /** Show the diagonal arrow after the label. */
   arrow?: boolean;
+  children: string;
 };
 
-const base =
-  "inline-flex origin-bottom items-center gap-3 border-[1.5px] font-semibold leading-none no-underline " +
-  "transition-colors duration-[350ms] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-hd";
-
 const variants = {
-  primary: "border-ac bg-ac text-bgc",
-  ghost: "border-fg bg-transparent text-fg hover:bg-fg hover:text-bgc",
+  primary: "bg-strike text-bone hover:bg-deep",
+  quiet: "bg-ink/[.06] text-ink hover:bg-ink/[.11]",
+  light: "bg-bone text-deep hover:bg-paper",
+  outline: "border border-current/25 text-current hover:border-current",
 };
 
 const sizes = {
-  md: "min-h-12 px-[26px] py-[15px] text-[15px]",
-  sm: "min-h-10 px-[18px] py-[11px] text-[13.5px]",
+  md: "h-12 px-5 text-[12.5px]",
+  sm: "h-10 px-4 text-[11.5px]",
 };
 
-// On hover the button does the seal cube's little hop: squash, spring up, land.
-const body: Variants = {
-  rest: { y: 0, scaleX: 1, scaleY: 1 },
-  hover: {
-    y: [0, 0, -5, 0, 0],
-    scaleX: [1, 1.06, 0.96, 1.03, 1],
-    scaleY: [1, 0.9, 1.06, 0.97, 1],
-    transition: { duration: 0.6, times: [0, 0.18, 0.45, 0.75, 1], ease: "easeOut" },
-  },
-  tap: { scaleX: 1.04, scaleY: 0.94, y: 1 },
-};
-
-// ...and the arrow flips like a face of the cube turning over.
-const arrowFlip: Variants = {
-  rest: { rotateY: 0, transition: { duration: 0 } },
-  hover: { rotateY: 360, transition: { duration: 0.7, ease: EASE, delay: 0.08 } },
-};
-
-const MotionLink = motion.create(Link);
-
-/** The site's call-to-action link. Uses Next <Link> for pages, a plain <a> for mail and section links. */
+/**
+ * The site's mono call-to-action. On hover the label rolls up and a fresh
+ * copy rolls in from below, and the arrow shoots off and comes back.
+ */
 export function Button({ href, variant = "primary", size = "md", arrow, className = "", children, ...props }: ButtonProps) {
-  // Magnetic pull: the button leans a few pixels towards the cursor.
-  const { reduced } = useSite();
-  const mx = useSpring(0, { stiffness: 250, damping: 18 });
-  const my = useSpring(0, { stiffness: 250, damping: 18 });
-  const pull = (e: PointerEvent<HTMLSpanElement>) => {
-    if (reduced || e.pointerType !== "mouse") return;
-    const r = e.currentTarget.getBoundingClientRect();
-    mx.set((e.clientX - (r.left + r.width / 2)) * 0.18);
-    my.set((e.clientY - (r.top + r.height / 2)) * 0.3);
-  };
-  const release = () => {
-    mx.set(0);
-    my.set(0);
-  };
-
-  const shared = {
-    className: `${base} ${variants[variant]} ${sizes[size]} ${className}`,
-    initial: "rest",
-    animate: "rest",
-    whileHover: "hover",
-    whileFocus: "hover",
-    whileTap: "tap",
-    variants: body,
-    ...props,
-  } as const;
+  const cls = `group/btn inline-flex items-center gap-2.5 rounded-[5px] font-mono font-medium tracking-[.1em] uppercase no-underline transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-strike ${variants[variant]} ${sizes[size]} ${className}`;
 
   const content = (
     <>
-      {children}
+      <span className="relative block overflow-hidden">
+        <span className="block transition-transform duration-500 ease-site group-hover/btn:-translate-y-full motion-reduce:transition-none">
+          {children}
+        </span>
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 block translate-y-full transition-transform duration-500 ease-site group-hover/btn:translate-y-0 motion-reduce:transition-none"
+        >
+          {children}
+        </span>
+      </span>
       {arrow && (
-        <motion.span variants={arrowFlip} className="flex-none" style={{ transformPerspective: 200 }}>
-          <ArrowIcon />
-        </motion.span>
+        <span aria-hidden="true" className="relative block size-3 overflow-hidden">
+          <ArrowIcon className="absolute inset-0 transition-transform duration-500 ease-site group-hover/btn:translate-x-3 group-hover/btn:-translate-y-3" />
+          <ArrowIcon className="absolute inset-0 -translate-x-3 translate-y-3 transition-transform duration-500 ease-site group-hover/btn:translate-x-0 group-hover/btn:translate-y-0" />
+        </span>
       )}
     </>
   );
 
   const isPage = href.startsWith("/") && !href.startsWith("/#");
-  return (
-    <motion.span className="inline-flex" style={{ x: mx, y: my }} onPointerMove={pull} onPointerLeave={release}>
-      {isPage ? (
-        <MotionLink href={href} {...shared}>{content}</MotionLink>
-      ) : (
-        <motion.a href={href} {...shared}>{content}</motion.a>
-      )}
-    </motion.span>
+  return isPage ? (
+    <Link href={href} className={cls} {...props}>
+      {content}
+    </Link>
+  ) : (
+    <a href={href} className={cls} {...props}>
+      {content}
+    </a>
   );
 }

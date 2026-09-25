@@ -2,14 +2,12 @@
 
 /* ------------------------------------------------------------------
    Tokens
-   The fg/hd/ac/bgc family is live: <ScrollTheme> rewrites these on
-   <html> as the page scrolls, so the footer can fade the site to navy.
    ------------------------------------------------------------------ */
 :root {
   --fg: #0a0a0a;
-  --fg-soft: rgba(10, 10, 10, 0.66);
+  --fg-soft: rgba(10, 10, 10, 0.64);
   --fg-dim: rgba(10, 10, 10, 0.16);
-  --hair: rgba(10, 10, 10, 0.14);
+  --hair: rgba(10, 10, 10, 0.12);
   --hd: #1925aa;
   --ac: #0d1355;
   --bgc: #e8e6e0;
@@ -24,6 +22,7 @@
   --color-strike: #1925aa;
   --color-deep: #0d1355;
   --color-field: #dcd9d1;
+  --color-glow: #8f99ff;
 
   --color-fg: var(--fg);
   --color-fg-soft: var(--fg-soft);
@@ -38,26 +37,20 @@
 
   --ease-site: cubic-bezier(0.2, 0.7, 0.1, 1);
 
-  --animate-ripple: ripple 3.6s ease-in-out infinite;
-  --animate-cue: cue 1.8s var(--ease-site) infinite;
+  --animate-streak: streak 5.5s cubic-bezier(0.6, 0, 0.3, 1) infinite;
 }
 
-/* The original design breaks at 820px and 900px, so match those. */
 @theme {
   --breakpoint-md: 51.3125rem; /* 821px */
   --breakpoint-ml: 56.25rem; /* 900px */
 }
 
-@keyframes ripple {
-  0%, 100% { transform: scaleY(var(--lo, 0.45)); }
-  50% { transform: scaleY(1); }
-}
 @keyframes caret {
   50% { opacity: 0; }
 }
-@keyframes cue {
-  from { top: -40%; }
-  to { top: 100%; }
+@keyframes streak {
+  0% { stroke-dashoffset: 1.15; }
+  70%, 100% { stroke-dashoffset: -0.15; }
 }
 
 @layer base {
@@ -75,12 +68,25 @@
   }
 }
 
-/* ------------------------------------------------------------------
-   Service sketches
-   Paths carry pathLength="1" so a 0→1 dash offset draws them in.
-   The <svg class="sketch"> gets `.drawn` to trigger the draw.
-   ------------------------------------------------------------------ */
 @layer components {
+  /* A faint dotted drafting grid. Set --dot to change the dot colour. */
+  .dot-grid {
+    background-image: radial-gradient(circle at 1px 1px, var(--dot, rgba(13, 19, 85, 0.16)) 1px, transparent 0);
+    background-size: 72px 72px;
+  }
+
+  /* Film grain, laid over the hero sculpture for a printed feel. */
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.16;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.05 0 0 0 0 0.07 0 0 0 0 0.33 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Service sketches: paths carry pathLength="1" so a 0→1 dash offset draws them in. */
   .sketch { fill: none; stroke: var(--color-strike); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
   .sketch .dr { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.4s var(--ease-site); }
   .sketch .dr:nth-child(2) { transition-delay: 0.08s; }
@@ -98,11 +104,14 @@
 
   @media (prefers-reduced-motion: reduce) {
     .sketch .dr { stroke-dashoffset: 0; transition: none; }
+    .animate-streak { animation: none; }
   }
 }
 
 /* ------------------------------------------------------------------
-   The Multiplr seal as a 3D cube (entrance + companion)
+   The Multiplr seal as a 3D cube (hero + the companion that follows you)
+   The cube's size, border and padding come from --sz, --bw and --pad,
+   which <SealCube> updates every frame as it shrinks.
    ------------------------------------------------------------------ */
 @layer components {
   .bigseal {
@@ -112,7 +121,7 @@
     container-type: size;
     border: solid var(--color-deep);
     color: var(--color-deep);
-    background: color-mix(in srgb, var(--color-paper) calc(var(--t, 0) * 100%), var(--color-field));
+    background: color-mix(in srgb, var(--color-paper) calc(var(--t, 1) * 100%), var(--color-field));
   }
   .bigseal > span { display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-weight: 600; font-size: 21cqh; line-height: 1; }
   .bigseal i { font-style: normal; color: var(--color-strike); display: inline-block; }
@@ -129,29 +138,8 @@
   .f-top { transform: rotateX(90deg) translateZ(calc(var(--sz, 300px) / 2)); background: #eceae5; }
   .f-bottom { transform: rotateX(-90deg) translateZ(calc(var(--sz, 300px) / 2)); background: #cfcbc1; }
 
-  /* Companion: the small cube that follows you down the page. */
-  .companion { --sz: 42px; --bw: 1.2px; --pad: 3.5px; width: var(--sz); height: var(--sz); perspective: 280px; }
-  @media (width >= 51.3125rem) { .companion { --sz: 60px; --bw: 1.5px; --pad: 5px; } }
-  .companion .bigseal { --t: 1; }
-  .companion .cube-side svg { stroke-width: 1.25px; }
   /* While it merges into the header logo, the front face takes on the logo's look. */
-  .companion.merging .f-front { border-color: var(--fg); color: var(--fg); background: color-mix(in srgb, var(--bgc) calc(var(--co, 1) * 100%), transparent); border-width: var(--mbw); padding: var(--mpy) var(--mpx); align-items: stretch; }
-  .companion.merging .f-front > span { display: block; font-size: var(--mfs); letter-spacing: 0.28em; line-height: 1.4; }
-  .companion.merging .f-front i { color: var(--hd); }
-}
-
-/* ------------------------------------------------------------------
-   Entrance door geometry. Sizes derive from the door height (--dh).
-   ------------------------------------------------------------------ */
-@layer components {
-  .door-stage { --dh: min(62svh, 600px); --dw: calc(var(--dh) * 0.45); --floor: calc(50svh + var(--dh) * 0.5 + 5svh); }
-  .door-floor { position: absolute; left: 0; right: 0; height: 1px; background: rgba(10, 10, 10, 0.14); top: var(--floor); }
-  .doorway { position: absolute; left: 50%; top: calc(var(--floor) - var(--dh)); width: var(--dw); height: var(--dh); transform: translateX(-50%); }
-  .architrave { position: absolute; inset: calc(var(--dw) * -0.075) calc(var(--dw) * -0.075) 0; border: 1.5px solid var(--color-deep); border-bottom: 0; clip-path: inset(100% 0 0 0); }
-  .architrave::before { content: ""; position: absolute; inset: calc(var(--dw) * 0.035) calc(var(--dw) * 0.035) 0; border: 1px solid rgba(13, 19, 85, 0.4); border-bottom: 0; }
-  .door-opening { position: absolute; inset: 0; overflow: hidden; perspective: calc(var(--dw) * 3.4); perspective-origin: 50% 45%; background: var(--color-deep); clip-path: inset(100% 0 0 0); }
-  .door-inside { position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 38%, #e8e6e0 0, #e8e6e0 45%, #dedbd3 100%); }
-  .door-leaf { position: absolute; inset: 0; transform-origin: 0 50%; background: var(--color-deep); will-change: transform; backface-visibility: hidden; }
-  .door-spill { position: absolute; left: 50%; top: var(--floor); width: calc(var(--dw) * 3.2); height: calc(100svh - var(--floor)); transform: translateX(-50%); background: linear-gradient(#efede8, rgba(239, 237, 232, 0) 85%); clip-path: polygon(34.5% 0, 65.5% 0, 100% 100%, 0 100%); opacity: 0; }
-  .door-pitch { top: calc(50svh + min(8svh, 72px)); }
+  .seal-cube.merging .f-front { border-color: var(--fg); color: var(--fg); background: color-mix(in srgb, var(--bgc) calc(var(--co, 1) * 100%), transparent); border-width: var(--mbw); padding: var(--mpy) var(--mpx); align-items: stretch; }
+  .seal-cube.merging .f-front > span { display: block; font-size: var(--mfs); letter-spacing: 0.28em; line-height: 1.4; }
+  .seal-cube.merging .f-front i { color: var(--hd); }
 }

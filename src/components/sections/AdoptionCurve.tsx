@@ -31,11 +31,11 @@ export function AdoptionCurve() {
   const [active, setActive] = useState(0);
   const [exploring, setExploring] = useState(false);
 
-  // Scroll-driven draw-in, like the original.
+  // Draws itself in as the figure rises up the screen.
   const drawn = useMotionValue(0);
   useOnScroll(({ vh }) => {
-    const r = figRef.current?.closest("section")?.getBoundingClientRect();
-    if (r) drawn.set(reduced ? 1 : clamp((vh * 0.8 - r.top) / (r.height * 0.55), 0, 1));
+    const r = figRef.current?.getBoundingClientRect();
+    if (r) drawn.set(reduced ? 1 : clamp((vh * 0.95 - r.top) / (r.height * 0.9), 0, 1));
   });
   const dashOffset = useTransform(drawn, (c) => 1 - c);
   const markOpacity = useTransform(drawn, (c) => span(c, 0.45, 0.6));
@@ -86,7 +86,7 @@ export function AdoptionCurve() {
   const seg = SEGMENTS[active];
 
   return (
-    <figure ref={figRef} className="mt-[clamp(48px,8vh,80px)] max-w-[680px]">
+    <figure ref={figRef} className="mt-6 max-w-[760px]">
       <svg
         ref={svgRef}
         viewBox="0 0 560 214"

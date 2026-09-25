@@ -1,8 +1,7 @@
 "use client";
 
 import { MotionConfig } from "framer-motion";
-import { usePathname } from "next/navigation";
-import { createContext, useContext, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useContext, useSyncExternalStore, type ReactNode } from "react";
 
 const QUERY = "(prefers-reduced-motion: reduce)";
 const subscribe = (cb: () => void) => {
@@ -17,10 +16,7 @@ function usePrefersReducedMotion() {
 }
 
 type SiteState = {
-  /** True once the visitor has scrolled through the entrance door. */
-  inside: boolean;
-  setInside: (v: boolean) => void;
-  /** True when the visitor prefers reduced motion. */
+  /** True when the visitor prefers reduced motion. Pinned scenes become plain stacked content. */
   reduced: boolean;
 };
 
@@ -28,12 +24,8 @@ const SiteContext = createContext<SiteState | null>(null);
 
 export function SiteProvider({ children }: { children: ReactNode }) {
   const reduced = usePrefersReducedMotion();
-  const [inside, setInside] = useState(false);
-  // Only the home page has the entrance door; everywhere else you start inside.
-  const hasDoor = usePathname() === "/";
-
   return (
-    <SiteContext value={{ inside: inside || reduced || !hasDoor, setInside, reduced }}>
+    <SiteContext value={{ reduced }}>
       <MotionConfig reducedMotion="user">{children}</MotionConfig>
     </SiteContext>
   );

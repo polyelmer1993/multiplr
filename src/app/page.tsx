@@ -1,25 +1,26 @@
-import { Companion } from "@/components/layout/Companion";
-import { SideNav } from "@/components/layout/SideNav";
+import { SealCube } from "@/components/layout/SealCube";
 import { CaseStudies } from "@/components/sections/CaseStudies";
 import { Contact } from "@/components/sections/Contact";
-import { Entrance } from "@/components/sections/Entrance";
 import { Hero } from "@/components/sections/Hero";
-import { HowIWork } from "@/components/sections/how/HowIWork";
-import { Services } from "@/components/sections/services/Services";
-import { Statement } from "@/components/sections/Statement";
+import { HowIWork } from "@/components/sections/HowIWork";
+import { Pieces } from "@/components/sections/Pieces";
+import { Services } from "@/components/sections/Services";
 import { Story } from "@/components/sections/Story";
 import { SkipLink } from "@/components/ui/SkipLink";
 
+/**
+ * The home page, told as one scroll: the hero pins, then each chapter slides
+ * up over the last as a sheet. The seal cube shrinks out of the hero and
+ * follows you down the page.
+ */
 export default function Home() {
   return (
     <>
-      <SkipLink href="#home" />
-      <SideNav />
-      <Companion />
+      <SkipLink href="#pieces" />
+      <SealCube />
       <main>
-        <Entrance />
         <Hero />
-        <Statement />
+        <Pieces />
         <HowIWork />
         <Services />
         <CaseStudies />

@@ -3,13 +3,42 @@
 export const EMAIL = "gabriel@multiplr.com.au";
 
 export const NAV = [
-  { id: "home", label: "What I do" },
+  { id: "pieces", label: "What I do" },
   { id: "how", label: "How I work" },
-  { id: "ways", label: "Services" },
+  { id: "services", label: "Services" },
   { id: "work", label: "Case studies" },
   { id: "story", label: "Story" },
-  { id: "talk", label: "Contact" },
 ] as const;
+
+/** The statement, split into the three beats the "pieces" section scrubs through. */
+export const STATEMENT = [
+  "Most businesses already have the pieces: a website, a handful of processes and software, and a team that knows the work.",
+  "I find the piece that's costing you the most or the growth opportunity you're missing, implement the change and move on to the next one,",
+  "so the whole system gets better as we go and works as a force multiplier that shows up as real ROI.",
+];
+
+/** Labels for the grid of business "pieces". */
+export const PIECES = ["Website", "Enquiries", "Bookings", "Quotes", "Follow-ups", "Reporting", "Tools", "Handovers", "Team"];
+
+/** The founder story, in chapters. */
+export const STORY = [
+  {
+    meta: "San Francisco · 7 years",
+    text: "I spent the last seven years at Uber in San Francisco, leading strategy globally across payments and financial services, and most recently as GM of the US and Canada financial services business.",
+  },
+  {
+    meta: "Product at scale",
+    text: "I worked with tech teams every day to build tasteful products for hundreds of millions of customers.",
+  },
+  {
+    meta: "Melbourne · Now",
+    text: "Now I'm back in Melbourne, putting AI to work to help business owners take the leap and realise tangible, data-driven benefits.",
+  },
+  {
+    meta: "Multiplr",
+    text: "Multiplr is where I do this, one useful change at a time.",
+  },
+];
 
 export const PITCHES = [
   "build websites that convert better.",

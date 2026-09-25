@@ -2,8 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
-import { ScrollProgress } from "@/components/layout/ScrollProgress";
-import { ScrollTheme } from "@/components/layout/ScrollTheme";
 import { SectionLinks } from "@/components/layout/SectionLinks";
 import { SiteProvider } from "@/components/SiteProvider";
 import "./globals.css";
@@ -11,7 +9,7 @@ import "./globals.css";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["300", "400", "500", "600"],
 });
 
 const jetbrains = JetBrains_Mono({
@@ -37,8 +35,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="font-sans">
         <SiteProvider>
           <SectionLinks />
-          <ScrollTheme />
-          <ScrollProgress />
           <Header />
           {children}
           <Footer />
